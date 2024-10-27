@@ -408,7 +408,7 @@ async function start() {
     });
   });
 
-  currentProblem.value = bricks[0][0].problem;
+  currentProblem.value = solutions.expression;
 
   gameInterval = setInterval(tick, 16);
 }

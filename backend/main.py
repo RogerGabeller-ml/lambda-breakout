@@ -149,7 +149,7 @@ def random_lambda_expression(depth: int, set_free_variables: set[chr]) -> Lambda
             return Abstraction(new_free_variable, random_lambda_expression(depth-1, set_free_variables))
         
 def get_beta_steps(expression: LambdaExpression, steps: int) -> LambdaExpression:
-    expressions = [str(expression)]
+    expressions = []
     for i in range(steps):
         expression = beta_reduction(expression)
         expressions.append(str(expression))
