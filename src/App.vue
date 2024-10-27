@@ -1,6 +1,7 @@
 <!-- eslint-disable @typescript-eslint/no-unused-vars -->
 <script setup lang="ts">
 import { onMounted, onUnmounted, ref, useTemplateRef } from "vue";
+import axios from "axios";
 
 // export type Board = Array<Array<string | number>>;
 
@@ -15,6 +16,11 @@ type Brick = {
   step: number;
   hit?: boolean;
 };
+
+async function fetchSolutions() {
+  const response = await axios.get("http://localhost:8000/random");
+  return response.data;
+}
 
 //****** data ******
 
@@ -39,7 +45,7 @@ const bricks: Array<Array<Brick>> = [
   ],
 ];
 
-let currentProblem = ref("(λf. λx. f (f x)) (λy. * y 2) 5");
+let currentProblem = ref("");
 let nextStep = 1;
 
 let message: string | null = null;
@@ -368,7 +374,7 @@ function tick() {
   drawMessage();
 }
 
-function start() {
+async function start() {
   addEventListener("keydown", (event) => {
     if (event.key === "a") {
       moveDirection = "left";
@@ -393,6 +399,16 @@ function start() {
   canvas.value!.addEventListener("click", (event) => {
     if (isFiringMode) isFire = true;
   });
+
+  const solutions = await fetchSolutions();
+
+  bricks.forEach((row, rowIndex) => {
+    row.forEach((brick, brickIndex) => {
+        brick.problem = solutions.steps[rowIndex * 2 + brickIndex];
+    });
+  });
+
+  currentProblem.value = bricks[0][0].problem;
 
   gameInterval = setInterval(tick, 16);
 }
