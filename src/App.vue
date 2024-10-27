@@ -79,6 +79,7 @@ let mousePos: { x: number; y: number } = { x: 0, y: 0 };
 
 let isFire = false;
 let isFiringMode = true;
+let isGameOver = false;
 
 const brickHeight = 45;
 
@@ -321,8 +322,13 @@ function processWallIntersection() {
     ballVelocityX = -ballVelocityX;
   }
 
-  if (nextStepY > canvasHeight || nextStepY < 0) {
+  if (nextStepY < 0) {
     ballVelocityY = -ballVelocityY;
+  }
+
+  if (nextStepY > canvasHeight) {
+    message = "Game over!";
+    isGameOver = true;
   }
 }
 
@@ -330,41 +336,47 @@ function tick() {
   const ctx = canvas.value!.getContext("2d")!;
   ctx.clearRect(0, 0, canvasWidth, canvasHeight);
 
-  processMovement();
+  if (!isGameOver) {
+    processMovement();
+    if (!isFiringMode) {
+      message = null;
 
-  if (!isFiringMode) {
-    message = null;
+      processPaddleIntersection();
+      processBrickIntersection();
+      processWallIntersection();
+      processBallMovement();
 
-    processPaddleIntersection();
-    processBrickIntersection();
-    processWallIntersection();
-    processBallMovement();
-  } else {
-    message = "Use left-click to fire";
+      if (bricks.every((r) => r.every((brick) => brick.hit))) {
+        isGameOver = true;
+        message = "Level complete";
+      }
+    } else {
+      message = "Use left-click to fire";
 
-    ballPosX = paddlePosX;
-    ballPosY = paddlePosY - 10;
+      ballPosX = paddlePosX;
+      ballPosY = paddlePosY - 10;
 
-    drawRay();
+      drawRay();
 
-    if (isFire) {
-      isFire = false;
-      isFiringMode = false;
+      if (isFire) {
+        isFire = false;
+        isFiringMode = false;
 
-      const x = mousePos.x - ballPosX;
-      const y = mousePos.y - ballPosY;
+        const x = mousePos.x - ballPosX;
+        const y = mousePos.y - ballPosY;
 
-      const xSquared = x * x;
-      const ySquared = y * y;
-      const hSquared = xSquared + ySquared;
+        const xSquared = x * x;
+        const ySquared = y * y;
+        const hSquared = xSquared + ySquared;
 
-      const h = Math.sqrt(hSquared);
+        const h = Math.sqrt(hSquared);
 
-      const velocityX = x / h;
-      const velocityY = y / h;
+        const velocityX = x / h;
+        const velocityY = y / h;
 
-      ballVelocityX = velocityX * 2.5;
-      ballVelocityY = velocityY * 2.5;
+        ballVelocityX = velocityX * 2.5;
+        ballVelocityY = velocityY * 2.5;
+      }
     }
   }
 
@@ -404,7 +416,7 @@ async function start() {
 
   bricks.forEach((row, rowIndex) => {
     row.forEach((brick, brickIndex) => {
-        brick.problem = solutions.steps[rowIndex * 2 + brickIndex];
+      brick.problem = solutions.steps[rowIndex * 2 + brickIndex];
     });
   });
 
