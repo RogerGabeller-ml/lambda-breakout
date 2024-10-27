@@ -153,7 +153,11 @@ def get_beta_steps(expression: LambdaExpression, steps: int) -> LambdaExpression
     for i in range(steps):
         expression = beta_reduction(expression)
         expressions.append(str(expression))
-    return expressions
+    ordered_unique_expressions = []
+    for expression in expressions:
+        if expression not in ordered_unique_expressions:
+            ordered_unique_expressions.append(expression)
+    return ordered_unique_expressions
 
 @app.post("/evaluate")
 async def evaluate(expression: str):
@@ -165,5 +169,9 @@ async def evaluate(expression: str):
 
 @app.get("/random")
 async def random_expression():
-    expression = random_lambda_expression(10, [chr(i) for i in range(97, 123)][:5])
-    return {"steps": get_beta_steps(expression, 4), "expression": str(expression)}
+    expression = random_lambda_expression(5, [chr(i) for i in range(97, 123)][:5])
+    steps = get_beta_steps(expression, 4)
+    while len(steps) < 4:
+        expression = random_lambda_expression(5, [chr(i) for i in range(97, 123)][:5])
+        steps = get_beta_steps(expression, 4)
+    return {"steps": steps, "expression": str(expression)}
